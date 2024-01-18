@@ -4,12 +4,14 @@ import gymnasium as gym
 import tensorflow_probability as tfp
 import sys
 
+GYM_EVIRONMENT="CartPole-v1"
+
 class PolicyGradientSimpleModel(tf.keras.Model):
-    def __init__(self):
+    def __init__(self, action_size=2):
         super().__init__()
         self.d1 = tf.keras.layers.Dense(30,activation='relu')
         self.d2 = tf.keras.layers.Dense(30,activation='relu')
-        self.out = tf.keras.layers.Dense(2,activation='softmax')
+        self.out = tf.keras.layers.Dense(action_size,activation='softmax')
 
     def call(self, input_data):
         x = tf.convert_to_tensor(input_data)
@@ -19,8 +21,8 @@ class PolicyGradientSimpleModel(tf.keras.Model):
         return x
 
 class PolicyGradientAgent():
-    def __init__(self):
-        self.model = PolicyGradientSimpleModel()
+    def __init__(self, action_size=2):
+        self.model = PolicyGradientSimpleModel(action_size)
         self.opt = tf.keras.optimizers.Adam(learning_rate=0.001)
         self.gamma = 1
 
@@ -54,11 +56,19 @@ class PolicyGradientAgent():
 
 
 
+def create_agent():
+    def create_env():
+        env= gym.make(GYM_EVIRONMENT)
+        return env
+
+    env = create_env()
+    agent = PolicyGradientAgent(env.action_space.n)
+    return agent
 
 
 def train_agent(agent, num_of_episodes):
     def train_env_setup():
-        env= gym.make("CartPole-v1")
+        env= gym.make(GYM_EVIRONMENT)
         return env
 
     env = train_env_setup()
@@ -87,7 +97,7 @@ def train_agent(agent, num_of_episodes):
 
 def test_agent(agent, test_episodes=5):
     def test_env_setup():
-        env= gym.make("CartPole-v1", render_mode="human")
+        env= gym.make(GYM_EVIRONMENT, render_mode="human")
         return env
     for ep in range(test_episodes):
         env = test_env_setup()
@@ -104,6 +114,6 @@ def test_agent(agent, test_episodes=5):
                 break
 
 if __name__ == "__main__":
-    agent = PolicyGradientAgent()
+    agent = create_agent()
     train_agent(agent, int(sys.argv[1]))
     test_agent(agent, 10)
